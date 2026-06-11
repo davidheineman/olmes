@@ -69,8 +69,11 @@ class VLLM_Verbose(VLLM):
 
         if device is None:
             device = "cuda" if torch.cuda.device_count() > 0 else "cpu"
-        if torch.cuda.device_count() > 1:
+        data_parallel_size = kwargs.get("data_parallel_size", 1)
+        if data_parallel_size <= 1 and torch.cuda.device_count() > 1:
             kwargs["tensor_parallel_size"] = torch.cuda.device_count()
+        elif data_parallel_size > 1:
+            kwargs.setdefault("tensor_parallel_size", 1)
 
         if torch.cuda.device_count() == 1:
             os.environ["CUDA_VISIBLE_DEVICES"] = "0"
