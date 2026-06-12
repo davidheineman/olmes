@@ -83,7 +83,36 @@ class VLLM_Verbose(VLLM):
 
         self.vllm_for_mc = kwargs.pop("vllm_for_mc", False)
 
+        custom_kwargs = kwargs.pop("custom_kwargs", None)
+        if custom_kwargs and isinstance(custom_kwargs, dict):
+            kwargs.update(custom_kwargs)
+
         super().__init__(pretrained, device=device, **kwargs)
+
+    def _model_generate(
+        self,
+        requests: List[List[int]] = None,
+        generate: bool = False,
+        max_tokens: int = None,
+        stop: Optional[List[str]] = None,
+        **kwargs,
+    ):
+        from vllm import SamplingParams
+
+        if generate:
+            kwargs = self.modify_gen_kwargs(kwargs)
+            sampling_params = SamplingParams(max_tokens=max_tokens, stop=stop, **kwargs)
+        else:
+            sampling_params = SamplingParams(
+                temperature=0, prompt_logprobs=1, max_tokens=1, detokenize=False
+            )
+        prompts = [{"prompt_token_ids": ids} for ids in requests]
+        outputs = self.model.generate(
+            prompts,
+            sampling_params=sampling_params,
+            use_tqdm=True if self.batch_size == "auto" else False,
+        )
+        return outputs
 
     def unload_model(self):
         # Free model from GPU memory, following advice in https://github.com/vllm-project/vllm/issues/1908

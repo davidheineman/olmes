@@ -73,10 +73,10 @@ def load_model(model_load_config: dict) -> HFLM_Verbose:
     model_load_config_other = model_load_config.copy()
     # LiteLLM tries to constantly check prices so we disable unless we need it
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
+    custom_kwargs = model_load_config_other.pop("custom_kwargs", None)
     for key in [
         "chat_model",
         "chat_template",
-        "custom_kwargs",
         "model",
         "model_path",
         "model_type",
@@ -84,6 +84,8 @@ def load_model(model_load_config: dict) -> HFLM_Verbose:
         "process_output",
     ]:  # Keys not passed on to model loader
         model_load_config_other.pop(key, None)
+    if custom_kwargs and isinstance(custom_kwargs, dict):
+        model_load_config_other["custom_kwargs"] = custom_kwargs
     if model_type == "hf":
         model_class: TemplateLM = HFLM_Verbose
     elif model_type == "vllm":
