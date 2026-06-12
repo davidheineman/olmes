@@ -7826,6 +7826,32 @@ for task_alias, task_config in TASK_CONFIGS.items():
         OLMES_FULL_CONFIGS[olmes_full_alias] = olmes_full_config
 TASK_CONFIGS.update(OLMES_FULL_CONFIGS)
 
+# Polaris 10K subset
+TASK_CONFIGS["polaris::e2e:adapt"] = {
+    "task_name": "polaris",
+    "split": "train",
+    "limit": 10000,
+    "random_subsample_seed": 42,
+    "primary_metric": "exact_match_flex",
+    "use_chat_format": True,
+    "num_shots": 0,
+    "model_max_length": 32768,
+    "chat_overrides": {
+        "context_kwargs": {
+            "final_description": "\n\nPresent the answer in LaTex format: \\boxed{Your answer}",
+            "cot_style": "plain",
+        },
+    },
+    "generation_kwargs": {
+        "max_gen_toks": 131072,
+        "temperature": 0.6,
+        "top_p": 0.95,
+        "do_sample": True,
+        "stop_sequences": [],
+        "truncate_context": False,
+    },
+}
+
 # add BPB-only versions of tasks
 BPB_ONLY_CONFIGS: dict = {}
 for task_alias in list(TASK_CONFIGS.keys()):
