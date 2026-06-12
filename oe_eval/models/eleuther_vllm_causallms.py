@@ -75,8 +75,6 @@ class VLLM_Verbose(VLLM):
         elif data_parallel_size > 1:
             kwargs.setdefault("tensor_parallel_size", 1)
 
-        if torch.cuda.device_count() == 1:
-            os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
         # if "revision" in kwargs and kwargs["revision"] is None:
         # Hack to deal with Eleuther using "main" as a default for "revision", not needed for VLLM

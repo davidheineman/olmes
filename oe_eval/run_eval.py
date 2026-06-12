@@ -636,7 +636,8 @@ def run_eval(args_dict: dict):
     else:
         gpu_ids = [str(i) for i in range(num_gpus)]
     request_queues = []
-    response_queue = mp.Queue()  # type: mp.Queue
+    mp_ctx = mp.get_context("spawn")
+    response_queue = mp_ctx.Queue()  # type: mp.Queue
     processes = []
     workers = eval_config["num_workers"]
     assert workers >= 1, f"Number of workers must be greater than 0, got {workers}."
@@ -663,11 +664,11 @@ def run_eval(args_dict: dict):
                 model_config["model_type"] != "litellm"
             ), f"litellm does not support multiprocessing. Got {workers} workers."
             for i in range(workers):
-                request_queue = mp.Queue()  # type: mp.Queue
+                request_queue = mp_ctx.Queue()  # type: mp.Queue
                 request_queues.append(request_queue)
                 _model_load_config = copy.deepcopy(model_load_config)
                 _gpuids = gpu_ids[i * _num_gpus : (i + 1) * _num_gpus]
-                p = mp.Process(
+                p = mp_ctx.Process(
                     target=load_model_mp,
                     args=(_model_load_config, _gpuids, request_queue, response_queue, i == 0),
                 )
@@ -919,6 +920,10 @@ def run_eval(args_dict: dict):
                         os._exit(1)
                     # Gather results
                     results_for_requests.extend(result)
+
+            # Reassign res_ids to be globally unique after merging worker results
+            for i, res in enumerate(results_for_requests):
+                res["res_id"] = i
 
         # Unset model from task to clear reference
         task.model = None

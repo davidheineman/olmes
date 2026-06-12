@@ -2100,6 +2100,32 @@ TASK_CONFIGS.update(
             "compute_gold_bpb": True,
             "num_shots": 3,
         },
+        "deepcoder::e2e:adapt": {
+            "task_name": "deepcoder",
+            "split": "train",
+            "primary_metric": "pass_at_1",
+            "use_chat_format": True,
+            "chat_overrides": {
+                "context_kwargs": {
+                    "system_prompt": "You are an expert Python programmer. You will be given a question (problem specification) and will generate a correct Python program that matches the specification and passes all tests.",
+                    "template": "### Question:\n{{problem_statement}}\n\n### Format:\nProvide CONCISE reasoning on how to arrive at the answer in the <think> </think> tag.\n{{format_instruction}}\n\n### Answer: (use the provided format with backticks)\n\n",
+                    "assistant_prefix": None,
+                    "truncation_size_when_saved": 5000,
+                },
+                "generation_kwargs": {
+                    "max_gen_toks": 999999,
+                    "truncate_context": False,
+                    "do_sample": True,
+                    "top_p": 0.95,
+                    "temperature": 0.6,
+                    "repeats": 10,
+                    "stop_sequences": [],
+                },
+                "metric_kwargs": {
+                    "pass_at_ks": [1, 5, 10],
+                },
+            },
+        },
         "deepseek_leetcode::olmo3": {
             "task_name": "deepseek_leetcode",
             "primary_metric": "pass_at_1",
