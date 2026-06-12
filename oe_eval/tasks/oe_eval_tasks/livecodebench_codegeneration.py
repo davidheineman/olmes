@@ -233,9 +233,32 @@ class LiveCodeBenchCodeGeneration(Task):
         },
     }
 
+    LIVECODEBENCH_VERSION_FILES = {
+        "release_v1": ["test.jsonl"],
+        "release_v2": ["test.jsonl", "test2.jsonl"],
+        "release_v3": ["test.jsonl", "test2.jsonl", "test3.jsonl"],
+        "release_v4": ["test.jsonl", "test2.jsonl", "test3.jsonl", "test4.jsonl"],
+        "release_v5": ["test.jsonl", "test2.jsonl", "test3.jsonl", "test4.jsonl", "test5.jsonl"],
+        "release_v6": ["test.jsonl", "test2.jsonl", "test3.jsonl", "test4.jsonl", "test5.jsonl", "test6.jsonl"],
+    }
+
     def download(self, data_dir=None, cache_dir=None, download_mode=None):
         """Override to use version_tag instead of revision for LiveCodeBench dataset"""
         dataset_path = self.task_config["dataset_path"]
+        version_tag = self.task_config.get("revision")
+
+        local_parquet_root = os.environ.get("OLMES_LOCAL_DATASETS")
+        if local_parquet_root:
+            slug = dataset_path.replace("/", "__")
+            local_dir = os.path.join(local_parquet_root, slug)
+            if os.path.isdir(local_dir):
+                data_files = self.LIVECODEBENCH_VERSION_FILES.get(version_tag)
+                if data_files:
+                    paths = [os.path.join(local_dir, f) for f in data_files]
+                    self.dataset = datasets.load_dataset(
+                        "json", data_files={"test": paths}, trust_remote_code=True
+                    )
+                    return
 
         if os.path.exists(dataset_path):
             self.dataset = datasets.load_dataset(
@@ -244,7 +267,6 @@ class LiveCodeBenchCodeGeneration(Task):
                 trust_remote_code=True,
             )
         else:
-            version_tag = self.task_config.get("revision")
             self.dataset = datasets.load_dataset(
                 dataset_path,
                 version_tag=version_tag,

@@ -394,6 +394,9 @@ class DatasetWrapper:
                 if subdir and os.path.isdir(os.path.join(local_dir, subdir)):
                     logger.info(f"Loading {path}/{name} from local parquet: {local_dir}")
                     return datasets.load_dataset(local_dir, data_dir=subdir, trust_remote_code=trust_remote_code)
+                elif not subdir:
+                    logger.info(f"Loading {path} from local directory: {local_dir}")
+                    return datasets.load_dataset(local_dir, trust_remote_code=trust_remote_code)
         return datasets.load_dataset(
             path=path,
             name=name,
