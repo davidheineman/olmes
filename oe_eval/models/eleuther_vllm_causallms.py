@@ -97,6 +97,11 @@ class VLLM_Verbose(VLLM):
         stop: Optional[List[str]] = None,
         **kwargs,
     ):
+        if self.data_parallel_size > 1:
+            return super()._model_generate(
+                requests=requests, generate=generate, max_tokens=max_tokens, stop=stop, **kwargs
+            )
+
         from vllm import SamplingParams
 
         if generate:
