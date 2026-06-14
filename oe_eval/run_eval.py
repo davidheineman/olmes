@@ -672,7 +672,7 @@ def run_eval(args_dict: dict):
                     target=load_model_mp,
                     args=(_model_load_config, _gpuids, request_queue, response_queue, i == 0),
                 )
-                p.daemon = True  # Exit if an error returned to main
+                p.daemon = False
                 processes.append(p)
                 p.start()
 
