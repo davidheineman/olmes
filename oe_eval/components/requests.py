@@ -4,6 +4,10 @@ from enum import Enum
 from typing import List, Optional, Tuple, Union
 
 
+# Stop sequences appended to every generate_until request, regardless of task config.
+GLOBAL_STOP_SEQUENCES: Tuple[str, ...] = ("<|end_of_text|>", "<|eot|>")
+
+
 class RequestType(Enum):
     GENERATE_UNTIL = "generate_until"
     GENERATE_UNTIL_AND_LOGLIKELIHOOD = "generate_until_and_loglikelihood"

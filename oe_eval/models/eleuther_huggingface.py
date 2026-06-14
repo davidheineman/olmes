@@ -16,6 +16,7 @@ from oe_eval.components.requests import (
     GenerateUntilRequest,
     LoglikelihoodRequest,
     LoglikelihoodRollingRequest,
+    GLOBAL_STOP_SEQUENCES,
 )
 from oe_eval.utilities.model_results_collation import collate_results
 from oe_eval.utils import cut_at_stop_sequence
@@ -613,6 +614,9 @@ class HFLM_Verbose(HFLM):
                 until = [eos]
             else:
                 until.append(eos)
+            for _s in GLOBAL_STOP_SEQUENCES:
+                if _s not in until:
+                    until.append(_s)
             if "max_gen_toks" in kwargs.keys():
                 max_gen_toks = kwargs.pop("max_gen_toks")
             else:
