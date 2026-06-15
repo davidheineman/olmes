@@ -6,7 +6,7 @@ from typing import List, Union
 
 from oe_eval.components.instances import RequestInstance
 from oe_eval.components.requests import RequestType
-from oe_eval.metrics.metric import IFEvalMetric
+from oe_eval.metrics.metric import IFEvalMetric, PassAtK
 from oe_eval.tasks.base_task import Task
 
 _CITATION = """
@@ -64,7 +64,27 @@ class IFBench(Task):
                 **self.task_config["metric_kwargs"],
             )
         ]
+
+        pass_at_ks = self.task_config.get("metric_kwargs", {}).get("pass_at_ks", [])
+        if pass_at_ks:
+            self._metrics.append(
+                PassAtK(
+                    extract_pred_fn=lambda x: x,
+                    custom_pass_fn=self._pass_fn,
+                    **self.task_config["metric_kwargs"],
+                )
+            )
+
         return self._metrics
+
+    def _pass_fn(self, group_lst) -> dict:
+        from oe_eval.dependencies.ifeval.utils import process_results
+
+        doc = group_lst[0]["doc"]
+        response = group_lst[0]["model_resps"]["continuation"]
+        results = process_results(doc, [response])
+        score = 1 if results.get("prompt_level_loose_acc", False) else 0
+        return {"exact_match": score}
 
     def has_training_docs(self):
         return True

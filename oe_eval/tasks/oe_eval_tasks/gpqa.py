@@ -25,7 +25,7 @@ from typing import List, Union
 
 from oe_eval.components.instances import RequestInstance
 from oe_eval.components.requests import RequestType
-from oe_eval.metrics.metric import ExactMatch
+from oe_eval.metrics.metric import ExactMatch, PassAtK
 from oe_eval.tasks.base_task import Task
 from oe_eval.tasks.utils import apply_prompt_template, extract_answer, map_indexed
 
@@ -95,7 +95,27 @@ class GPQA(Task):
                 **self.task_config["metric_kwargs"],
             )
         ]
+
+        pass_at_ks = self.task_config.get("metric_kwargs", {}).get("pass_at_ks", [])
+        if pass_at_ks:
+            self._metrics.append(
+                PassAtK(
+                    extract_pred_fn=self._extract_answer,
+                    custom_pass_fn=self._pass_fn,
+                    **self.task_config["metric_kwargs"],
+                )
+            )
+
         return self._metrics
+
+    def _pass_fn(self, group_lst) -> dict:
+        doc = group_lst[0]["doc"]
+        gold = doc["answer"].strip().upper()
+        for item in group_lst:
+            pred = self._extract_answer(item["model_resps"]["continuation"])
+            if pred is not None and pred.strip().upper() == gold:
+                return {"exact_match": 1}
+        return {"exact_match": 0}
 
     def has_training_docs(self):
         return True

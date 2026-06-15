@@ -18,7 +18,7 @@ import re
 from typing import Optional
 
 from oe_eval.data.mmlu_tasks import MMLU_SUBJECTS
-from oe_eval.metrics.metric import ExactMatch
+from oe_eval.metrics.metric import ExactMatch, PassAtK
 from oe_eval.tasks.base_task import MultipleChoiceTask, Task
 from oe_eval.tasks.utils import extract_answer, make_cloze_prompt, make_mcq_prompt
 from oe_eval.utils import get_dict_with_defaults
@@ -230,7 +230,27 @@ class GenericMMLU_OneTurnCoT(Task):
                 **self.task_config["metric_kwargs"],
             )
         ]
+
+        pass_at_ks = self.task_config.get("metric_kwargs", {}).get("pass_at_ks", [])
+        if pass_at_ks:
+            self._metrics.append(
+                PassAtK(
+                    extract_pred_fn=self._extract_answer,
+                    custom_pass_fn=self._pass_fn,
+                    **self.task_config["metric_kwargs"],
+                )
+            )
+
         return self._metrics
+
+    def _pass_fn(self, group_lst) -> dict:
+        doc = group_lst[0]["doc"]
+        gold = doc["answer_text"].strip().upper()
+        for item in group_lst:
+            pred = self._extract_answer(item["model_resps"]["continuation"])
+            if pred is not None and pred.strip().upper() == gold:
+                return {"exact_match": 1}
+        return {"exact_match": 0}
 
     def has_training_docs(self):
         return False

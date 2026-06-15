@@ -7878,6 +7878,228 @@ TASK_CONFIGS["polaris::e2e:adapt"] = {
     },
 }
 
+# Polaris 10K subset with pass@16
+TASK_CONFIGS["polaris:n16::e2e:adapt"] = {
+    "task_name": "polaris",
+    "split": "train",
+    "limit": 10000,
+    "random_subsample_seed": 42,
+    "primary_metric": "pass_at_1",
+    "use_chat_format": True,
+    "num_shots": 0,
+    "model_max_length": 32768,
+    "chat_overrides": {
+        "context_kwargs": {
+            "final_description": "\n\nPresent the answer in LaTex format: \\boxed{Your answer}",
+            "cot_style": "plain",
+        },
+    },
+    "generation_kwargs": {
+        "max_gen_toks": 131072,
+        "temperature": 0.6,
+        "top_p": 0.95,
+        "do_sample": True,
+        "stop_sequences": [],
+        "truncate_context": False,
+        "repeats": 16,
+    },
+    "metric_kwargs": {
+        "pass_at_ks": [1, 2, 4, 8, 16],
+    },
+}
+
+# Deepcoder with pass@16
+TASK_CONFIGS["deepcoder:n16::e2e:adapt"] = {
+    "task_name": "deepcoder",
+    "split": "train",
+    "primary_metric": "pass_at_1",
+    "use_chat_format": True,
+    "chat_overrides": {
+        "context_kwargs": {
+            "system_prompt": "You are an expert Python programmer. You will be given a question (problem specification) and will generate a correct Python program that matches the specification and passes all tests.",
+            "template": "### Question:\n{{problem_statement}}\n\n### Format:\nProvide CONCISE reasoning on how to arrive at the answer in the <think> </think> tag.\n{{format_instruction}}\n\n### Answer: (use the provided format with backticks)\n\n",
+            "assistant_prefix": None,
+            "truncation_size_when_saved": 5000,
+        },
+        "generation_kwargs": {
+            "max_gen_toks": 999999,
+            "truncate_context": False,
+            "do_sample": True,
+            "top_p": 0.95,
+            "temperature": 0.6,
+            "repeats": 16,
+            "stop_sequences": [],
+        },
+        "metric_kwargs": {
+            "pass_at_ks": [1, 2, 4, 8, 16],
+        },
+    },
+}
+
+# MMLU CoT with pass@16 (per-subject)
+for sub in MMLU_SUBJECTS:
+    TASK_CONFIGS[f"mmlu_{sub}:cot:n16::olmo3:adapt"] = {
+        "task_name": f"mmlu_{sub}:cot",
+        "split": "test",
+        "primary_metric": "pass_at_1",
+        "use_chat_format": True,
+        "num_shots": 0,
+        "chat_overrides": {
+            "context_kwargs": {
+                "description": f"The following are multiple choice questions about {sub.replace('_', ' ')}. Summarize your reasoning concisely, then conclude with 'Therefore, the answer is: X' where X is one of A, B, C, or D.\n\n",
+            },
+            "generation_kwargs": {
+                "max_gen_toks": 131072,
+                "temperature": 0.6,
+                "top_p": 0.95,
+                "do_sample": True,
+                "stop_sequences": [],
+                "truncate_context": False,
+                "repeats": 16,
+            },
+            "metric_kwargs": {
+                "answer_regexes_templates": OLMO_3_REGEXES,
+                "answer_regexes": ["\\(?([A-D])\\)?"],
+                "pass_at_ks": [1, 2, 4, 8, 16],
+            },
+        },
+    }
+
+# GPQA with pass@16
+TASK_CONFIGS["gpqa:n16::olmo3:adapt"] = {
+    "task_name": "gpqa",
+    "split": "train",
+    "primary_metric": "pass_at_1",
+    "use_chat_format": True,
+    "num_shots": 0,
+    "chat_overrides": {
+        "context_kwargs": {
+            "assistant_prefix": None,
+            "fewshot_as_multiturn": False,
+            "description": 'Answer the following multiple-choice question by giving the correct answer letter in parentheses. Provide CONCISE reasoning for the answer, and make sure to finish the response with "Therefore, the answer is (ANSWER_LETTER)" where (ANSWER_LETTER) is one of (A), (B), (C), (D).\n\n',
+            "final_description": '\n\nAnswer the above question and REMEMBER to finish your response with the exact phrase "Therefore, the answer is (ANSWER_LETTER)" where (ANSWER_LETTER) is one of (A), (B), (C), (D).',
+        },
+        "generation_kwargs": {
+            "stop_sequences": [],
+            "max_gen_toks": 131072,
+            "temperature": 0.6,
+            "top_p": 0.95,
+            "do_sample": True,
+            "truncate_context": False,
+            "repeats": 16,
+        },
+        "metric_kwargs": {
+            "answer_format_regex": "Therefore, the answer is \\(([A-D])\\)",
+            "answer_regexes_templates": OLMO_3_REGEXES,
+            "answer_regexes": ["\\(?([A-D])\\)?"],
+            "pass_at_ks": [1, 2, 4, 8, 16],
+        },
+    },
+}
+
+# AIME 2025 with pass@16
+TASK_CONFIGS["aime:2025:n16::olmo3:adapt"] = {
+    "task_name": "aime",
+    "split": "test",
+    "primary_metric": "pass_at_1",
+    "use_chat_format": True,
+    "num_shots": 0,
+    "generation_kwargs": {
+        "max_gen_toks": 16384,
+        "temperature": 0.6,
+        "top_p": 0.95,
+        "do_sample": True,
+        "stop_sequences": [],
+        "repeats": 16,
+    },
+    "metric_kwargs": {
+        "pass_at_ks": [1, 2, 4, 8, 16],
+    },
+    "metadata": {
+        "years": [2025],
+    },
+}
+
+# MBPP+ with pass@16
+TASK_CONFIGS["mbppplus:n16::olmo3:adapt"] = {
+    "task_name": "mbppplus",
+    "primary_metric": "pass_at_1",
+    "use_chat_format": True,
+    "context_kwargs": {
+        "prompt_variant": "0-shot-chat",
+        "template": "{{code_prompt}}\n\nProvide CONCISE reasoning on how to arrive at the answer, and make sure to finish the response with the following:\n\nHere is the completed function:\n\n```python\n(CODE)\n```\nwhere (CODE) is the code for the complete function.",
+        "assistant_prefix": None,
+    },
+    "generation_kwargs": {
+        "max_gen_toks": 999999,
+        "truncate_context": False,
+        "do_sample": True,
+        "top_p": 0.95,
+        "temperature": 0.6,
+        "repeats": 16,
+        "stop_sequences": [],
+    },
+    "metric_kwargs": {
+        "pass_at_ks": [1, 2, 4, 8, 16],
+        "answer_format_regex": "(?s)Here is the completed function:\n*```(?:python\n)?\n*(.*?)\\s*```",
+        "answer_regexes": ["(?s)```(?:python\n)?\n*(.*?)\\s*```"],
+    },
+}
+
+# LiveCodeBench code generation with pass@16
+TASK_CONFIGS["livecodebench_codegeneration:n16::olmo3:adapt"] = {
+    "task_name": "livecodebench_codegeneration",
+    "split": "test",
+    "primary_metric": "pass_at_1",
+    "use_chat_format": True,
+    "chat_overrides": {
+        "context_kwargs": {
+            "system_prompt": "You are an expert Python programmer. You will be given a question (problem specification) and will generate a correct Python program that matches the specification and passes all tests.",
+            "template": "### Question:\n{{problem_statement}}\n\n### Format:\nProvide CONCISE reasoning on how to arrive at the answer in the <think> </think> tag.\n{{format_instruction}}\n\n### Answer: (use the provided format with backticks)\n\n",
+            "assistant_prefix": None,
+            "truncation_size_when_saved": 5000,
+        },
+        "generation_kwargs": {
+            "max_gen_toks": 999999,
+            "truncate_context": False,
+            "do_sample": True,
+            "top_p": 0.95,
+            "temperature": 0.6,
+            "repeats": 16,
+            "stop_sequences": [],
+        },
+        "metric_kwargs": {
+            "pass_at_ks": [1, 2, 4, 8, 16],
+        },
+    },
+}
+
+# IFBench with pass@16
+TASK_CONFIGS["ifbench:n16::olmo3:adapt"] = {
+    "task_name": "ifbench",
+    "primary_metric": "pass_at_1",
+    "split": "train",
+    "use_chat_format": True,
+    "generation_kwargs": {
+        "max_gen_toks": 32768,
+        "do_sample": True,
+        "temperature": 0.6,
+        "top_p": 0.95,
+        "stop_sequences": ["</answer>"],
+        "truncate_context": False,
+        "repeats": 16,
+    },
+    "metric_kwargs": {
+        "aggregation_levels": ["prompt", "inst"],
+        "strictness_levels": ["strict", "loose"],
+        "output_individual_metrics": True,
+        "pass_at_ks": [1, 2, 4, 8, 16],
+    },
+    "metadata": {
+        "regimes": ["Tulu"],
+    },
+}
+
 # add BPB-only versions of tasks
 BPB_ONLY_CONFIGS: dict = {}
 for task_alias in list(TASK_CONFIGS.keys()):

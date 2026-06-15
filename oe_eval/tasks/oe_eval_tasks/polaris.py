@@ -16,7 +16,7 @@ from lm_eval.tasks.minerva_math.utils import remove_boxed
 
 from oe_eval.components.instances import RequestInstance
 from oe_eval.components.requests import RequestType
-from oe_eval.metrics.metric import GenericMetric
+from oe_eval.metrics.metric import GenericMetric, PassAtK
 from oe_eval.tasks.base_task import Task
 from oe_eval.tasks.utils import apply_prompt_template, map_indexed
 
@@ -107,6 +107,12 @@ class Polaris(Task):
             all_answers.append(normalize_final_answer(raw_answer))
         return all_answers
 
+    def pass_fn(self, group_lst) -> dict:
+        responses = [v["model_resps"]["continuation"] for v in group_lst]
+        doc = group_lst[0]["doc"]
+        metrics: dict = self.process_results(doc, responses)
+        return metrics
+
     def make_metrics(self):
         self._metrics = [
             GenericMetric(
@@ -115,6 +121,19 @@ class Polaris(Task):
                 **self.task_config["metric_kwargs"],
             ),
         ]
+
+        pass_at_ks = self.task_config.get("metric_kwargs", {}).get("pass_at_ks", [])
+        if pass_at_ks:
+            self._metrics.append(
+                PassAtK(
+                    extract_pred_fn=self.extract_answers,
+                    custom_pass_fn=self.pass_fn,
+                    ignore_case=True,
+                    ignore_punctuation=False,
+                    **self.task_config["metric_kwargs"],
+                )
+            )
+
         return self._metrics
 
     def process_results(self, doc, results):
