@@ -248,6 +248,8 @@ class GenericMMLU_OneTurnCoT(Task):
         gold = doc["answer_text"].strip().upper()
         for item in group_lst:
             pred = self._extract_answer(item["model_resps"]["continuation"])
+            if isinstance(pred, dict):
+                pred = pred.get("answer")
             if pred is not None and pred.strip().upper() == gold:
                 return {"exact_match": 1}
         return {"exact_match": 0}

@@ -479,6 +479,10 @@ TASK_SUITE_CONFIGS["mmlu:cot::olmo3:adapt"] = {
     "tasks": [f"mmlu_{sub}:cot::olmo3:adapt" for sub in MMLU_SUBJECTS],
     "primary_metric": "macro",
 }
+TASK_SUITE_CONFIGS["mmlu:cot:n16::olmo3:adapt"] = {
+    "tasks": [f"mmlu_{sub}:cot:n16::olmo3:adapt" for sub in MMLU_SUBJECTS],
+    "primary_metric": "macro",
+}
 TASK_SUITE_CONFIGS["mmlu:cot::olmo3:midtrain"] = {
     "tasks": [f"mmlu_{sub}:cot::olmo3:midtrain" for sub in MMLU_SUBJECTS],
     "primary_metric": "macro",
