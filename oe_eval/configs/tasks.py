@@ -2105,6 +2105,7 @@ TASK_CONFIGS.update(
             "split": "train",
             "primary_metric": "pass_at_1",
             "use_chat_format": True,
+            "limit": 2500,
             "chat_overrides": {
                 "context_kwargs": {
                     "system_prompt": "You are an expert Python programmer. You will be given a question (problem specification) and will generate a correct Python program that matches the specification and passes all tests.",
@@ -7856,7 +7857,7 @@ TASK_CONFIGS.update(OLMES_FULL_CONFIGS)
 TASK_CONFIGS["polaris::e2e:adapt"] = {
     "task_name": "polaris",
     "split": "train",
-    "limit": 10000,
+    "limit": 2500,
     "random_subsample_seed": 42,
     "primary_metric": "exact_match_flex",
     "use_chat_format": True,
@@ -7882,7 +7883,7 @@ TASK_CONFIGS["polaris::e2e:adapt"] = {
 TASK_CONFIGS["polaris:n16::e2e:adapt"] = {
     "task_name": "polaris",
     "split": "train",
-    "limit": 10000,
+    "limit": 2500,
     "random_subsample_seed": 42,
     "primary_metric": "pass_at_1",
     "use_chat_format": True,
@@ -7914,6 +7915,7 @@ TASK_CONFIGS["deepcoder:n16::e2e:adapt"] = {
     "split": "train",
     "primary_metric": "pass_at_1",
     "use_chat_format": True,
+    "limit": 2500,
     "chat_overrides": {
         "context_kwargs": {
             "system_prompt": "You are an expert Python programmer. You will be given a question (problem specification) and will generate a correct Python program that matches the specification and passes all tests.",
